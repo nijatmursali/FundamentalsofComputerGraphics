@@ -118,17 +118,31 @@ static vec3f eval_texture(const rtr::texture* texture, const vec2f& uv,
     bool ldr_as_linear = false) {
   // get texture
   if (!texture) return {1, 1, 1};
-
-  // get yimg::image width/height
   auto size = texture_size(texture);
 
   // YOUR CODE GOES HERE
   // get coordinates normalized for tiling
+  auto s = fmod(uv.x, 1) * size.x;
+  auto t = fmod(uv.y, 1) * size.y;
+  if(s < 0)
+    s += size.x;
+
+  if(t < 0)
+    t += size.y;
+  
+  auto i = clamp((int)s, 0, size.x-1);
+  auto j = clamp((int)t, 0, size.y-1);
 
   // get image coordinates and residuals
-
+  auto ii = (i + 1) % size.x;
+  auto jj = (j + 1) % size.y;
+  auto u = s - i;
+  auto v = t - j;
   // handle interpolation
-  return {1, 1, 1};
+  return lookup_texture(texture, {i,j}, ldr_as_linear) * (1 - u) * (1 - v)+
+         lookup_texture(texture, {i,jj}, ldr_as_linear) * (1 - u) * v +
+         lookup_texture(texture, {ii,j}, ldr_as_linear) * u * (1-v) +
+         lookup_texture(texture, {ii,jj}, ldr_as_linear) * u * v;
 }
 static float eval_texturef(const rtr::texture* texture, const vec2f& uv,
     bool ldr_as_linear = false) {
@@ -140,14 +154,22 @@ static float eval_texturef(const rtr::texture* texture, const vec2f& uv,
 static ray3f eval_camera(const rtr::camera* camera, const vec2f& image_uv) {
   // YOUR CODE GOES HERE
   // evaluate the camera ray as per slides
-  return ray3f{};
+  auto q = vec3f{(camera->film.x) *(0.5f-image_uv.x),
+    (camera->film.y) * (image_uv.y -0.5f), camera->lens};
+
+  auto e = zero3f;
+  auto d = normalize(-q - e);
+
+  return ray3f{transform_point(camera->frame, e), transform_direction(camera->frame,d)};
 }
 
 // Eval position
 static vec3f eval_position(
     const rtr::shape* shape, int element, const vec2f& uv) {
   // YOUR CODE GOES HERE
-  return zero3f;
+  auto t = shape->triangles[element];
+  auto pos = shape->positions;
+  return interpolate_triangle(pos[t.x], pos[t.y], pos[t.z], uv);
 }
 
 // Shape element normal.
@@ -171,7 +193,10 @@ static vec3f eval_normal(
     const rtr::shape* shape, int element, const vec2f& uv) {
   if (shape->normals.empty()) return eval_element_normal(shape, element);
   // YOUR CODE GOES HERE
-  return eval_element_normal(shape, element);
+  auto t = shape->triangles[element];
+  auto norm = shape->normals;
+  return normalize(interpolate_triangle(norm[t.x], norm[t.y], norm[t.z], uv));
+  //return eval_element_normal(shape, element);
 }
 
 // Eval texcoord
@@ -179,13 +204,30 @@ static vec2f eval_texcoord(
     const rtr::shape* shape, int element, const vec2f& uv) {
   if (shape->texcoords.empty()) return uv;
   // YOUR CODE GOES HERE
-  return uv;
+  auto t = shape->triangles[element];
+  auto texcoord = shape->texcoords;
+  return interpolate_triangle(texcoord[t.x], texcoord[t.y], texcoord[t.z], uv);
 }
 
 // Evaluate all environment color.
 static vec3f eval_environment(const rtr::scene* scene, const ray3f& ray) {
   // YOUR CODE GOES HERE
-  return zero3f;
+  //slide 92
+  //auto local_ray = trace_raytrace(scene, ray);
+
+  auto emission = zero3f;
+  for(auto environment: scene->environments) {
+    auto local_dir = transform_direction(inverse(environment->frame), ray.d);
+    auto texcoord = vec2f{
+    atan2(local_dir.z, local_dir.x) / (2 * pif),
+      acos(clamp(local_dir.y, -1.0f, 1.0f)) / pif};
+
+    if (texcoord.x < 0)
+      texcoord.x += 1;
+
+    emission += environment->emission * eval_texture(environment->emission_tex, texcoord);
+  }
+  return emission;
 }
 
 }  // namespace yocto::raytrace
@@ -561,34 +603,83 @@ intersection3f intersect_instance_bvh(const rtr::object* object,
 // -----------------------------------------------------------------------------
 namespace yocto::raytrace {
 
+
+vec3f fresnel_schlick(vec3f ks, vec3f normal, vec3f outgoing) {
+return ks + (1 - ks)*pow(1 - dot(normal, outgoing), 5);
+}
 // Raytrace renderer.
 static vec4f trace_raytrace(const rtr::scene* scene, const ray3f& ray,
     int bounce, rng_state& rng, const trace_params& params) {
   // YOUR CODE GOES HERE
 
   // intersect next point
+  auto intersection = intersect_scene_bvh(scene, ray);
+   if(!intersection.hit) {
+   }
 
   // evaluate geometry
+  auto object = scene->objects[intersection.object];
 
+  auto position = transform_point(object->frame, eval_position(object->shape, intersection.element, intersection.uv));  
   // normal corrections
+  auto normal = transform_point(object->frame, eval_normal(object->shape, intersection.element, intersection.uv));
 
   // evaluate material
-
+  auto incoming = sample_hemisphere(normal, rand2f(rng));
+  auto outgoing = -incoming; 
   // handle opacity
-
-  // accumulate emission
-
+  //float opacity = 1.0;
+  //auto rngs = make_rng(1301081);
+  auto opacity = object->material->opacity;
+  if(opacity < 1 && rand1f(rng) > opacity) {
+    return trace_raytrace(scene, ray3f{position, outgoing}, bounce+1, rng, params);
+  }
+  //accumulate emission
+  auto radiance = object->material->emission;
   // exit if enough bounces are done
-
+  if(bounce >= params.bounces) {
+    return {radiance, 1};
+  }
   // compute indirect illumination
+  auto transmission = object->material->transmission;
+  auto roughness = object->material->roughness;
+  auto metallic = object->material->metallic;
+  
+  
+  //radiance += ((2 * 3) * object->material->color) * (3 * trace_raytrace(scene, ray3f{position, incoming}, bounce + 1, rng, params) * dot(normal, incoming));
+  return {radiance, 1};
   // transmission -> polished dielectric
-  // metallic && !roughness -> polished metal
-  // metallic &&  roughness -> rough metal
-  // specular -> rough plastic
-  // else -> diffuse
+  
+  if(transmission) {
+    //handle polished dielectrics
+    
+    
+  }else if (metallic && !roughness) {
+    // metallic && !roughness -> polished metal
+    auto incoming = sample_hemisphere(normal, rand2f(rng));
+    auto halfway = normalize(outgoing + incoming);
+    // radiance += (2 * 3) *
+    // microfacet_distribution(roughness, normal, halfway) *
+    // microfacet_shadowing(roughness,normal, halfway, outgoing,incoming, false) /
+    // (4 * dot(normal, outgoing) * dot(normal, incoming)) *
+    // trace_raytrace(scene, ray3f{position, incoming},
+    // bounce+1, rng, params) * dot(normal, incoming);
+    
+  } else if(metallic && roughness) {
+    // metallic &&  roughness -> rough metal
+    auto incoming = reflect(outgoing, normal);
+    radiance += fresnel_schlick(object->material->color, normal, outgoing) * trace_raytrace(scene, ray3f{position, incoming}, bounce+1, rng, params);
+  }else if(set_specular) {
+    // specular -> rough plastic
 
+  }else {
+    //handle diffuse
+    auto incoming = sample_hemisphere(normal, rand2f(rng));
+    //radiance += (2 * 3) * object->material->color / 3 * trace_raytrace(scene, ray3f{position, incoming}, bounce + 1, rng, params) * dot(normal, incoming);
+    return {radiance, 1};
+  }
   // done
-  return {zero3f, 1};
+  //return {zero3f, 1};
 }
 
 // Eyelight for quick previewing.
@@ -596,8 +687,8 @@ static vec4f trace_eyelight(const rtr::scene* scene, const ray3f& ray,
     int bounce, rng_state& rng, const trace_params& params) {
   // YOUR CODE GOES HERE
   // intersect next point
-  intersection3f intersection = intersect_scene_bvh(scene, ray);
-   if(!intersect_scene_bvh(scene, ray).hit) {
+  auto intersection = intersect_scene_bvh(scene, ray, false, true);
+   if(!intersection.hit) {
      return {zero3f, 1};
    }
   // evaluate geometry
@@ -613,38 +704,37 @@ static vec4f trace_normal(const rtr::scene* scene, const ray3f& ray, int bounce,
     rng_state& rng, const trace_params& params) {
   // YOUR CODE GOES HERE
   // intersect next point
-  intersection3f intersection = intersect_scene_bvh(scene, ray);
-   if(!intersect_scene_bvh(scene, ray).hit) {
+  auto intersection = intersect_scene_bvh(scene, ray);
+   if(!intersection.hit) {
      return {zero3f, 1};
    }
   // prepare shading point
   auto object = scene->objects[intersection.object];
   auto normal = transform_direction(object->frame, eval_normal(object->shape, intersection.element, intersection.uv));
-  return {normal, 1};
+  return {normal * 0.5 + 0.5, 1};
 }
 
 static vec4f trace_texcoord(const rtr::scene* scene, const ray3f& ray,
     int bounce, rng_state& rng, const trace_params& params) {
   // YOUR CODE GOES HERE
   // intersect next point
-  intersection3f intersection = intersect_scene_bvh(scene, ray);
-   if(!intersect_scene_bvh(scene, ray).hit) {
+  auto intersection = intersect_scene_bvh(scene, ray);
+   if(!intersection.hit) {
      return {zero3f, 1};
    }
   // prepare shading point
   auto object = scene->objects[intersection.object];
-  //auto texcoord = transform_direction(object->frame, eval_texcoord(object->shape, intersection.element, intersection.uv));
-  // return texcoord in xy
-  //return {texcoord, 1};
-  return {0, 0, 0, 1};
+  vec2f color = eval_texcoord(object->shape, intersection.element, intersection.uv);
+  return {fmod(color.x, 1), fmod(color.y, 1), 0, 1};
+
 }
 
 static vec4f trace_color(const rtr::scene* scene, const ray3f& ray, int bounce,
     rng_state& rng, const trace_params& params) {
   // YOUR CODE GOES HERE
   // intersect next point
-  intersection3f intersection = intersect_scene_bvh(scene, ray);
-   if(!intersect_scene_bvh(scene, ray).hit) {
+  auto intersection = intersect_scene_bvh(scene, ray);
+   if(!intersection.hit) {
      return {zero3f, 1};
    }
   // prepare shading point
@@ -737,20 +827,54 @@ void trace_samples(rtr::state* state, const rtr::scene* scene,
     const rtr::camera* camera, const trace_params& params) {
   // get current shader
   auto shader = get_trace_shader_func(params);
+  auto rngs = make_rng(1301081);
+  //auto image = image3f(scene->image_width, scene->image_height);
 
   // check if we run in parallel or not
   if (params.noparallel) {
     // loop over image pixels
-    
-    // get pixel uv from rng
-    // get camera ray
-    // call shader
-    // clamp to max value
-    // update state accumulation, samples and render
+
+    for(auto j = 0; j < state->render.size().y; j++) {
+      for(auto i = 0; i < state->render.size().x; i++) {
+        auto &pixel = state->pixels[i,j];
+        auto image_size = state->pixels.size();
+        auto puv = rand2f(pixel.rng);
+         auto uv = vec2f{(i + puv.x) / image_size.x, (j + puv.y) / image_size.y};
+        auto ray = eval_camera(camera, uv);
+        
+        auto color = shader(scene, ray, params.bounces, pixel.rng, params);
+
+        if(max(color) > params.clamp) {
+          color = color * (params.clamp/ max(color));
+        }
+        pixel.accumulated += color; 
+        pixel.samples += 1; 
+        state->render[{i, j}] = color; 
+      }
+      //something here
+
+    }
+  
   } else {
     parallel_for(
         state->render.size(), [state, scene, camera, &params](const vec2i& ij) {
-          // copy here the body of the above loop
+          auto shader = get_trace_shader_func(params);
+          auto& pixel = state->pixels[ij.x,ij.y];
+          auto image_size = state->pixels.size();
+          auto puv = rand2f(pixel.rng);
+          auto uv = vec2f{(ij.x + puv.x) / image_size.x, (ij.y + puv.y) / image_size.y};
+
+          // get camera ray
+          auto ray = eval_camera(camera, uv);
+          // call shader
+          auto color = shader(scene, ray, params.bounces, pixel.rng, params);
+          // clamp to max value
+          if(max(color)> params.clamp)
+            color = color * (params.clamp / max(color));
+          // update state accumulation, samples and render
+          pixel.accumulated += color;
+          pixel.samples += 1;
+          state->render[{ij.x, ij.y}] = color; 
         });
   }
 }
