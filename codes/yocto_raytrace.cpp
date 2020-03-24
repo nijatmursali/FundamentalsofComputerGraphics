@@ -171,6 +171,8 @@ static vec3f eval_position(
   auto t = shape->triangles[element];
   auto pos = shape->positions;
   return interpolate_triangle(pos[t.x], pos[t.y], pos[t.z], uv);
+  //return interpolate_line(pos[t.x], uv);
+  //return line_tangent(pos[t.x], pos[t.y]);
 }
 
 // Shape element normal.
@@ -653,21 +655,31 @@ static vec4f trace_raytrace(const rtr::scene* scene, const ray3f& ray,
   auto roughness = object->material->roughness * eval_texture(object->material->roughness_tex, texcoord, true).x;
   //auto opacity
   auto transmission = object->material->transmission * eval_texture(object->material->emission_tex, texcoord, true).x;
-  auto opacity = object->material->opacity * mean(eval_texture(object->material->opacity_tex, texcoord, true));
 
-  //etc
+
+  auto opacity = object->material->opacity;//*(1 - transmission);
+    if(object->material->opacity_tex) {
+      opacity = opacity * eval_texturef(object->material->opacity_tex, texcoord);
+    }
+
+    if (rand1f(rng) > opacity){
+    return trace_raytrace(scene, {position, ray.d}, bounce+1, rng, params);
+  }
+
+
 
 // handle opacity
-  if (opacity < 1 && rand1f(rng) > opacity){
-    return trace_raytrace(scene, {position + ray.d * 1e-2f, ray.d},
-      bounce+1, rng, params);
-  }
+  //if(opacity < 1 && rand1f(rng) > opacity) {
+  // if (opacity < 1 && rand1f(rng) > opacity){
+  //   return trace_raytrace(scene, ray3f{position, outgoing}, bounce+1, rng, params);
+  //   //return trace_raytrace(scene, {position + ray.d * 1e-2f, ray.d}, bounce+1, rng, params);
+  // }
 
 
   if(transmission) {
     //transmission -> polished dielectric
     //handle polished dielectrics
-    auto fsc =  fresnel_schlick(base_color, normal, outgoing);
+    auto fsc =  fresnel_schlick({0.04, 0.04, 0.04}, normal, outgoing);
     if(rand1f(rng) < fsc.x) {
       auto incoming = reflect(outgoing, normal);
       auto rec = trace_raytrace(scene, ray3f{position, incoming}, bounce+1, rng, params);
@@ -676,7 +688,7 @@ static vec4f trace_raytrace(const rtr::scene* scene, const ray3f& ray,
     }else {
       auto incoming = - outgoing;
       auto rec = trace_raytrace(scene, ray3f{position, incoming}, bounce+1, rng, params);
-      radiance += object->material->color * vec3f{rec.x, rec.y, rec.z};
+      radiance += base_color * vec3f{rec.x, rec.y, rec.z};
     }
 
   }else if (metallic && !roughness) {
@@ -709,7 +721,7 @@ static vec4f trace_raytrace(const rtr::scene* scene, const ray3f& ray,
     auto rec = trace_raytrace(scene, ray3f{position, incoming}, bounce + 1, rng, params);
 
     radiance += (2 * pi) * (
-    object->material->color / pi * (1 - fresnel_schlick({0.04, 0.04, 0.04},halfway,outgoing)) +
+    base_color / pi * (1 - fresnel_schlick({0.04, 0.04, 0.04},halfway,outgoing)) +
     fresnel_schlick({0.04, 0.04, 0.04}, halfway, outgoing) *
     microfacet_distribution(roughness, normal, halfway) *
     microfacet_shadowing(roughness,normal,halfway, outgoing,incoming, true) /
@@ -726,7 +738,7 @@ static vec4f trace_raytrace(const rtr::scene* scene, const ray3f& ray,
 
     auto rec = trace_raytrace(scene, sr, bounce+1, rng, params);
 
-    radiance += (2 * pi) * (base_color/ pi) * vec3f{rec.x, rec.y, rec.z} 
+    radiance += (2 * pi) * (base_color/ pi) * vec3f{rec.x, rec.y, rec.z}
                 * dot(normal, incoming);
 
 
@@ -906,8 +918,6 @@ void trace_samples(rtr::state* state, const rtr::scene* scene,
         pixel.samples += 1;
         state->render[{i, j}] = pixel.accumulated/(float)pixel.samples;
       }
-      //something here
-
     }
 
   } else {
