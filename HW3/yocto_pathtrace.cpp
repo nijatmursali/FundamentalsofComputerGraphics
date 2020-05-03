@@ -1213,12 +1213,8 @@ static vec4f trace_path(const ptr::scene* scene, const ray3f& ray_,
     auto normal   = eval_shading_normal(object, element, uv, outgoing);
     auto emission = eval_emission(object, element, uv, normal, outgoing);
     auto brdf     = eval_brdf(object, element, uv, normal, outgoing);
-
+    
     auto point = eval_vsdf(object, element, uv);
-
-    if(params.bounces) {
-      //max_roughness = max();
-    }
 
     // handle opacity
     if (brdf.opacity < 1 && rand1f(rng) >= brdf.opacity) {
@@ -1252,33 +1248,34 @@ static vec4f trace_path(const ptr::scene* scene, const ray3f& ray_,
     if(has_volume(object) && dot(normal, outgoing) * dot(normal, incoming) < 0) {
       if(volume_stack.empty()) {
         auto volpoint = eval_vsdf(object, element, uv);
+        volume_stack.push_back(volpoint); 
+      }else {
         volume_stack.pop_back();
       }
     }
     // setup next iteration
     ray = {position, incoming};
     } else {  
-      auto point = volume_stack.back();
       auto object   = scene->objects[intersection.object];
       auto element  = intersection.element;
       auto outgoing = -ray.d;
       auto uv       = intersection.uv;
       auto position = ray.o + ray.d * intersection.distance;
-      auto normal   = eval_shading_normal(object, element, uv, outgoing);
+      
+      auto vol = volume_stack.back();
+      auto point = eval_vsdf(object, element, uv);
       //handle opacity
       hit = true;
 
-      //accumulate emission
-      //radiance += weight * eval_volemission(point, normal, outgoing);  
       auto incoming = zero3f;
       // next direction
       if (rand1f(rng) < 0.5f) {
-        incoming = sample_scattering(point, outgoing, rand1f(rng),rand2f(rng));
+        incoming = sample_scattering(vol, outgoing, rand1f(rng),rand2f(rng));
       } else {
         incoming = sample_lights(
             scene, position, rand1f(rng), rand1f(rng), rand2f(rng));
       }
-      weight *= eval_scattering(point,outgoing, incoming) / (0.5f * sample_scattering_pdf(point,outgoing,incoming) +
+      weight *= eval_scattering(vol,outgoing, incoming) / (0.5f * sample_scattering_pdf(vol,outgoing,incoming) +
               0.5f * sample_lights_pdf(scene, position, incoming));
 
       // setup next iteration
