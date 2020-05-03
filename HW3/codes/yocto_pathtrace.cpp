@@ -1161,8 +1161,8 @@ static vec3f sample_scattering(
   // vec3f scatter    = {0, 0, 0};
   // float anisotropy = 0;
 
-  if (vsdf.density == zero3f) return zero3f;
-  return sample_phasefunction(vsdf.anisotropy, outgoing, rn);
+  if (vsdf.density == zero3f) return zero3f; //if zero then 0vec
+  return sample_phasefunction(vsdf.anisotropy, outgoing, rn); //return 
 }
 
 static float sample_scattering_pdf(
@@ -1193,12 +1193,12 @@ static vec4f trace_path(const ptr::scene* scene, const ray3f& ray_,
     }
     auto in_volume = false;
     if (!volume_stack.empty()) {
-      auto& vsdf     = volume_stack.back();
+      auto& point     = volume_stack.back();
       auto  distance = sample_transmittance(
-          vsdf.density, intersection.distance, rand1f(rng), rand1f(rng));
-      weight *= eval_transmittance(vsdf.density, distance) /
+          point.density, intersection.distance, rand1f(rng), rand1f(rng));
+      weight *= eval_transmittance(point.density, distance) /
                 sample_transmittance_pdf(
-                    vsdf.density, distance, intersection.distance);
+                    point.density, distance, intersection.distance);
 
       in_volume             = distance < intersection.distance;
       intersection.distance = distance;
@@ -1253,8 +1253,8 @@ static vec4f trace_path(const ptr::scene* scene, const ray3f& ray_,
       if (has_volume(object) &&
           dot(normal, outgoing) * dot(normal, incoming) < 0) {
         if (volume_stack.empty()) {
-          auto volpoint = eval_vsdf(object, element, uv);
-          volume_stack.push_back(volpoint);
+          auto vol = eval_vsdf(object, element, uv);
+          volume_stack.push_back(vol);
         } else {
           volume_stack.pop_back();
         }
@@ -1269,10 +1269,11 @@ static vec4f trace_path(const ptr::scene* scene, const ray3f& ray_,
       auto position = ray.o + ray.d * intersection.distance;
 
       auto vol   = volume_stack.back();
-      auto point = eval_vsdf(object, element, uv);
       // handle opacity
       hit = true;
 
+      //no emission for this 
+      
       auto incoming = zero3f;
       // next direction
       if (rand1f(rng) < 0.5f) {
