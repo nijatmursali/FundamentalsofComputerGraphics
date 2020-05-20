@@ -18,7 +18,9 @@ MYOH (1 person, easy), make your own homework:
 
 As mentioned in introduction part, the idea here was to create a scene that had the features that we have mentioned. The following picture shows the model I have created using Blender 2.8 where you can find information from the following [link](https://skfb.ly/6SJpx). 
 
-![Model in Blender][scr1]
+<p align="center">
+  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/screenshots/screenshot_1.png?raw=true">
+</p>
 
 In order to start project, we first needed to add library from the actual yocto which you can find [here](https://github.com/xelatihy/yocto-gl). You need to get `ysceneproc` from `apps` and import it to the homework. This is crucial step because you also need to add `add_subdirectory(ysceneproc)` to the `apps/CMakeLists.txt`. When you do this, you just need to run `build.sh` file from the `scripts/build.sh` by just putting `./scripts/build.sh`. When it builds your `ysceneproc` file in `bin/ysceneproc` you can simply write the following command in bash
 
@@ -44,10 +46,8 @@ The following code is for `./scripts/run-highres.sh` which gives the better rend
 ```
 
 The following image is the result from the `./scripts/run.sh` execution. 
-![Render with Yocto][scr2]
 
-
-
-[scr1]: https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/screenshots/screenshot_1.png?raw=true "Model in Blender"
-[scr2]: https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/screenshots/screenshot_2.jpg?raw=true "Render with Yocto"
+<p align="center">
+  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/screenshots/screenshot_2.jpg?raw=true">
+</p>
 
