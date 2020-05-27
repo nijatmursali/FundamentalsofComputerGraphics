@@ -46,19 +46,14 @@ The fundamental idea of this project was that this project helped us to understa
 As mentioned in introduction part, the idea here was to create a scene that had the features that we have mentioned. The following picture shows the model I have created using Blender 2.8 where you can find information from the following [link](https://skfb.ly/6SJpx). 
 
 <p align="center">
-  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/screenshots/screenshot_1.png?raw=true">
+  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/out/screenshot_1.png?raw=true">
 </p>
 
 In order to start project, we first needed to add library from the actual yocto which you can find [here](https://github.com/xelatihy/yocto-gl). You need to get **ysceneproc** from **apps** and import it to the homework. This is crucial step because you also need to add `add_subdirectory(ysceneproc)` to the `apps/CMakeLists.txt` which your final **CMakeLists.txt** inside the **app** directory will look like this.
 
-```js
-add_subdirectory(yscenetrace)
-add_subdirectory(ysceneproc)
-
-if(YOCTO_OPENGL)
-add_subdirectory(ysceneitraces)
-endif(YOCTO_OPENGL)
-```
+<p align="center">
+  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/code_screenshots/code1.png?raw=true">
+</p>
 
 When you do this, you just need to run `build.sh` file from the `scripts/build.sh` by just putting `./scripts/build.sh`. Following code shows the `build.sh` file. 
  
