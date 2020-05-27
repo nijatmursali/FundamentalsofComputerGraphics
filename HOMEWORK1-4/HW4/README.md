@@ -52,7 +52,7 @@ As mentioned in introduction part, the idea here was to create a scene that had 
 In order to start project, we first needed to add library from the actual yocto which you can find [here](https://github.com/xelatihy/yocto-gl). You need to get **ysceneproc** from **apps** and import it to the homework. This is crucial step because you also need to add `add_subdirectory(ysceneproc)` to the `apps/CMakeLists.txt` which your final **CMakeLists.txt** inside the **app** directory will look like this.
 
 <p align="center">
-  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/code_screenshots/code1.png?raw=true">
+  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/code_screenshots/code1.png?raw=true" width="80%">
 </p>
 
 When you do this, you just need to run `build.sh` file from the `scripts/build.sh` by just putting `./scripts/build.sh`. Following code shows the `build.sh` file. 
