@@ -111,28 +111,86 @@ The following code is for `./scripts/run-highres.sh` which gives the better rend
 The following image is the result from the `./scripts/run.sh` execution. We have added as many images as possible in order to show the different camere angles for all objects. We will also add the high resolution images of renders. 
 
 <p align="center">
-  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/screenshots/screenshot_2.jpg?raw=true">
+  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/out/low-res/screenshot_2.jpg?raw=true">
 </p>
 
 <p align="center">
-  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/screenshots/screenshot_3.jpg?raw=true">
+  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/out/low-res/screenshot_3.jpg?raw=true">
 </p>
 
 <p align="center">
-  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/screenshots/screenshot_4.jpg?raw=true">
+  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/out/low-res/screenshot_4.jpg?raw=true">
 </p>
 
 <p align="center">
-  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/screenshots/screenshot_5.jpg?raw=true">
+  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/out/low-res/screenshot_5.jpg?raw=true">
 </p>
 
 <p align="center">
-  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/screenshots/screenshot_6.jpg?raw=true">
+  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/out/low-res/screenshot_6.jpg?raw=true">
 </p>
 
 <p align="center">
-  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/screenshots/screenshot_7.jpg?raw=true">
+  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/out/low-res/screenshot_7.jpg?raw=true">
 </p>
+
+The following images are high resolution images that took more than one hour to render for each one. The following table shows how much time it took my laptop to render the images. 
+
+
+<p align="center"></p>
+<table>
+    <thead>
+        <tr>
+            <th align="left">Image</th>
+            <th align="center">Time to Render</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td align="left">room_camera1</td>
+            <td align="center">85 minutes</td>
+        </tr>
+                <tr>
+            <td align="left">room_camera2</td>
+            <td align="center">82 minutes</td>
+        </tr>
+        <tr>
+            <td align="left">room_camera3</td>
+            <td align="center">93 minutes</td>
+        </tr>
+        <tr>
+            <td align="left">room_camera4</td>
+            <td align="center">76 minutes</td>
+        </tr>
+        <tr>
+            <td align="left">room_camera5</td>
+            <td align="center">81 minutes</td>
+        </tr>
+    </tbody>
+</table>
+
+
+<p align="center">
+  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/out/high-res/room_camera1.jpg?raw=true">
+</p>
+
+<p align="center">
+  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/out/high-res/room_camera2.jpg?raw=true">
+</p>
+
+<p align="center">
+  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/out/high-res/room_camera3.jpg?raw=true">
+</p>
+
+<p align="center">
+  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/out/high-res/room_camera4.jpg?raw=true">
+</p>
+
+<p align="center">
+  <img src = "https://github.com/nijatmursali/FundamentalsofComputerGraphics/blob/master/HOMEWORK1-4/HW4/out/high-res/room_camera5.jpg?raw=true">
+</p>
+
+
 
 
 ## Conclusion
