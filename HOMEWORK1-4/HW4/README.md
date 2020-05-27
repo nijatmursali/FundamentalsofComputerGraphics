@@ -11,7 +11,7 @@
 
 <h4 align="center">Nijat Mursali | 1919669</h4>
 
-<h4 align="center">HOMEWORK 4 - SCENE CREATION PROJECT</h4>
+<h4 align="center">HOMEWORK 4 - MYOS 2.0</h4>
 
 ---
 
