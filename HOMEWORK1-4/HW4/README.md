@@ -39,7 +39,7 @@
 
 ## Introduction 
 
-The fundamental idea of this project was that this project helped us to understand the [Yocto tools](https://github.com/xelatihy/yocto-gl) to render our models. In order to make the project more interesting, we have checked the same scene with Blender 2.8 Cycles render engine to see how powerful Yocto can be to render the images. Thus, as mentioned in the project list, this homework helped us to make environment to show off Yocto/GL by demostrating the rendering features we have demonstrated. In our models, we have added [subdivision surface modifier](https://docs.blender.org/manual/en/latest/modeling/modifiers/generate/subdivision_surface.html) and others. For this project, we have used only one outside asset that mentioned above, all other models included in scene are our own models. 
+The fundamental idea of this project was that this project helped us to understand the [Yocto tools](https://github.com/xelatihy/yocto-gl) to render our models. In order to make the project more interesting, we have checked the same scene with Blender 2.8 Cycles render engine to see how powerful Yocto can be to render the images. Thus, as mentioned in the project list, this homework helped us to make environment to show off Yocto/GL by demostrating the rendering features we have demonstrated. In our models, we have added [subdivision surface modifier](https://docs.blender.org/manual/en/latest/modeling/modifiers/generate/subdivision_surface.html) and others. For this project, we have used only one outside asset that mentioned above, all other models included in scene are our own models. In zipped file, we have included only one folder for the scene because all other scenes are same scene, but with different camera placement. You can find those different camera placed scenes in [this link](https://github.com/nijatmursali/FundamentalsofComputerGraphics/tree/master/HOMEWORK1-4/HW4). 
 
 ## Development 
 
@@ -190,5 +190,5 @@ The following images are high resolution images that took more than one hour to 
 
 ## Conclusion
 
-This document has been created to show how exactly we have created our scene using Yocto/GL tools. For this reason, we would like to thank professor Fabio Pellacini for teaching all the great content during this semester. Before this course, I was just using the Blender 2.8 without knowing the algorithm behind the tools, but within this course I learned a lot. For the future development, I would like test this library to make renders and conversions. 
+This document has been created to show how exactly we have created our scene using Yocto/GL tools. As seen from the images, Yocto/GL is so powerful by detecting the subdivision surfaces, displacement maps and other algorithms. For this reason, we would like to thank professor Fabio Pellacini for teaching all the great content during this semester. Before this course, I was just using the Blender 2.8 without knowing the algorithm behind the tools, but within this course I learned a lot. For the future development, I would like test this library to make renders and conversions. 
 
